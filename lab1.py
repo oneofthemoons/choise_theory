@@ -143,7 +143,7 @@ def make_criteria_filters(criteria: List[str]) -> List[Tuple[int, str, Any]]:
         filters.append((id, op, val))
     return filters
 
-def make_filtered(alternatives: List[Alternative], filters :List[Tuple[int, str, Any]]):
+def make_filtered(alternatives: List[Alternative], filters :List[Tuple[int, str, Any]]) -> List[Alternative]:
     new_alternatives = list()
     for alternative in alternatives:
         filtered = False
@@ -181,16 +181,16 @@ def print_equaling_table(eqt: List[List[str]]) -> None:
         print('|')
         id += 1
 
-def print_set(alternatives: List[Alternative]):
+def print_set(alternatives: List[Alternative]) -> None:
     print("{ ", end='')
     print(', '.join(alternative.variant for alternative in alternatives), end='')
     print(' }')
 
 def print_Paretho_set(alternatives: List[Alternative], idx_set: Set[int]) -> None:
     print("Парето-оптимальное множество решений:")
-    print_set([alternatives[alt_idx] for alt_idx in make_Paretho_idx_set(eqt)])
+    print_set([alternatives[alt_idx] for alt_idx in idx_set])
 
-if __name__ == '__main__':
+def main() -> None:
     data_table = parse_data('lab1_data.csv')
     alternatives = make_alternatives(data_table)
     print_alternative_ids(alternatives)
@@ -209,3 +209,6 @@ if __name__ == '__main__':
         print()
         print("Текущее множество решений:")
         print_set(alternatives)
+
+if __name__ == '__main__':
+    main()
