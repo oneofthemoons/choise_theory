@@ -18,7 +18,9 @@ class Alternative:
     def __lt__(self, other: Alternative) -> bool:
         rv = True
         for i in range(len(self.criteria)):
-            rv = rv and self.criteria[i] < other.criteria[i]
+            lt_crit = self.criteria[i] < other.criteria[i] and self.config[i] \
+                or self.criteria[i] > other.criteria[i] and not self.config[i]
+            rv = rv and lt_crit
         return rv
 
     def __eq__(self, other: Alternative) -> bool:
@@ -30,7 +32,9 @@ class Alternative:
     def __gt__(self, other: Alternative) -> bool:
         rv = True
         for i in range(len(self.criteria)):
-            rv = rv and self.criteria[i] > other.criteria[i]
+            gt_crit = self.criteria[i] > other.criteria[i] and self.config[i] \
+                or self.criteria[i] < other.criteria[i] and not self.config[i]
+            rv = rv and gt_crit
         return rv
 
     def __le__(self, other: Alternative) -> bool:
