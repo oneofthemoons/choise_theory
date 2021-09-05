@@ -78,7 +78,7 @@ def column_type(col: list) -> Type:
     return str
 
 def make_alternatives(tabled_data: List[List[str]]) -> List[Alternative]:
-    config = list(map(lambda x: x == '+', tabled_data[0][1:]))
+    config = list(map(lambda s: '+' in s, tabled_data[0][1:]))
     data = tabled_data[1:]
     types : List[Type] = list()
     for i in range(len(data[0])):
@@ -105,8 +105,16 @@ def make_equaling_table(alts: List[Alternative]) -> List[List[str]]:
                 table[i][j] = 'H'
     return table
 
+def make_Paretho_idx_set(eqt: List[List[str]]) -> Set[int]:
+    rv = set()
+    for row in eqt:
+        for e in row:
+            if e.startswith('A'):
+                rv.add(int(e[1:]) - 1)
+    return rv
+
 def print_alternative_ids(alternatives: List[Alternative]) -> None:
-    print("Identificators of alternatives:")
+    print("Идентификаторы альтернатив:")
     id = 1
     n_zeros = len(str(len(alternatives)))
     for alternative in alternatives:
@@ -114,7 +122,7 @@ def print_alternative_ids(alternatives: List[Alternative]) -> None:
         id += 1
 
 def print_equaling_table(eqt: List[List[str]]) -> None:
-    print("Subpair equaling table:")
+    print("Таблица попарных сравнений:")
     sz_col = max(len(str(len(eqt))), max(map(lambda row: max(map(len, row)), eqt)))
     col_formatter = "{:_^" + str(sz_col) + "}"
     for _ in range(len(eqt) + 1):
@@ -132,9 +140,19 @@ def print_equaling_table(eqt: List[List[str]]) -> None:
         print('|')
         id += 1
 
+def print_Paretho_set(alternatives: List[Alternative], idx_set: Set[int]) -> None:
+    print("Парето-оптимальное множество решений:")
+    print("{ ", end='')
+    print(', '.join([alternatives[alt_idx].variant for alt_idx in make_Paretho_idx_set(eqt)]), end='')
+    print(' }')
+
 if __name__ == '__main__':
     alternatives = make_alternatives(parse_data('lab1_data.csv'))
     
     print_alternative_ids(alternatives)
     print()
-    print_equaling_table(make_equaling_table(alternatives))
+    eqt = make_equaling_table(alternatives)
+    print_equaling_table(eqt)
+    print()
+    print_Paretho_set(alternatives, make_Paretho_idx_set(eqt))
+
