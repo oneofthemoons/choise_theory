@@ -204,7 +204,7 @@ def main() -> None:
     print()
     print_Paretho_set(alternatives, make_Paretho_idx_set(eqt))
     print()
-    ans = input('Хотите ли вы указать верхние/нижние границы критериев [Д/н]')
+    ans = input('Хотите ли вы указать верхние/нижние границы критериев? [Д/н]')
     if any(c in ans for c in 'YyДд'):
         print_criteria_ids(criteria)
         print()
@@ -216,7 +216,7 @@ def main() -> None:
         print()
         print("Текущее множество решений:", end=' ')
         print_set(alternatives)
-    ans = input('Хотите ли вы провести субоптимизацию лексикографическим методом [Д/н]')
+    ans = input('Хотите ли вы провести субоптимизацию? [Д/н]')
     if any(c in ans for c in 'YyДд'):
         print_criteria_ids(criteria)
         print("Введите идентификатор главного критерия:")
