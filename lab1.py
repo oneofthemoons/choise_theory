@@ -106,6 +106,7 @@ def make_equaling_table(alts: List[Alternative]) -> List[List[str]]:
     return table
 
 def print_alternative_ids(alternatives: List[Alternative]) -> None:
+    print("Identificators of alternatives:")
     id = 1
     n_zeros = len(str(len(alternatives)))
     for alternative in alternatives:
@@ -116,16 +117,19 @@ def print_equaling_table(eqt: List[List[str]]) -> None:
     print("Subpair equaling table:")
     sz_col = max(len(str(len(eqt))), max(map(lambda row: max(map(len, row)), eqt)))
     col_formatter = "{:_^" + str(sz_col) + "}"
+    for _ in range(len(eqt) + 1):
+        print('_' + col_formatter.format(''), end='')
+    print('_')
     print('|' + col_formatter.format(''), end='')
     for id in range(1, len(eqt) + 1):
         print('|' + col_formatter.format(str(id)), end='')
-    print()
+    print('|')
     id = 1
     for row in eqt:
         print('|' + col_formatter.format(str(id)), end='')
         for e in row:
             print('|' + col_formatter.format(e), end='')
-        print()
+        print('|')
         id += 1
 
 if __name__ == '__main__':
