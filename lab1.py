@@ -4,6 +4,8 @@ import csv
 from types import FunctionType
 from typing import *
 
+ALPHABET = "abcdefghijklmnopqrstuvwxyz"
+
 class Alternative:
     def __init__(self, id: int, variant: str, criteria: List[str], config: List[bool]):
         self.variant = variant
@@ -118,22 +120,11 @@ def make_Paretho_idx_set(eqt: List[List[str]]) -> Set[int]:
     return rv
 
 def make_criteria_filters(criteria: List[str]) -> List[Tuple[int, str, Any]]:
-    print("Идентификаторы критериев:")
-    n_zeros = len(str(len(criteria)))
-    alphabet = "abcdefghijklmnopqrstuvwxyz"
-    id = 0
-    for c in criteria:
-        print(f"{alphabet[id]}: {c}")
-        id += 1
-    print()
-    print("Введите границы критериев в следующем формате (без скобок):")
-    print("[идентификатор критерия][знак сравнения < или >][значение]")
-    print("Например, несколько критериев можно ввести через пробел: c>12000 d<9")
     ans = input().split()
     filters = list()
     for filter in ans:
         op_pos = max(filter.find('>'), filter.find('<'))
-        id = alphabet.index(filter[:op_pos])
+        id = ALPHABET.index(filter[:op_pos])
         op = filter[op_pos]
         val = filter[op_pos + 1:]
         try:
@@ -161,6 +152,18 @@ def print_alternative_ids(alternatives: List[Alternative]) -> None:
     n_zeros = len(str(len(alternatives)))
     for alternative in alternatives:
         print(f"{str(alternative.id).zfill(n_zeros)}: {alternative.variant}")
+
+def print_criteria_ids(criteria: List[str]) -> None:
+    print("Идентификаторы критериев:")
+    id = 0
+    for c in criteria:
+        print(f"{ALPHABET[id]}: {c}")
+        id += 1
+
+def print_criteria_filters_request(criteria: List[str]) -> None:
+    print("Введите границы критериев в следующем формате (без скобок):")
+    print("[идентификатор критерия][знак сравнения < или >][значение]")
+    print("Например, несколько критериев можно ввести через пробел: c>12000 d<9")
 
 def print_equaling_table(eqt: List[List[str]]) -> None:
     print("Таблица попарных сравнений:")
@@ -192,6 +195,7 @@ def print_Paretho_set(alternatives: List[Alternative], idx_set: Set[int]) -> Non
 
 def main() -> None:
     data_table = parse_data('lab1_data.csv')
+    criteria = data_table[0][1:]
     alternatives = make_alternatives(data_table)
     print_alternative_ids(alternatives)
     print()
@@ -202,13 +206,35 @@ def main() -> None:
     print()
     ans = input('Хотите ли вы указать верхние/нижние границы критериев [Д/н]')
     if any(c in ans for c in 'YyДд'):
-        filters = make_criteria_filters(data_table[0][1:])
+        print_criteria_ids(criteria)
+        print()
+        print_criteria_filters_request(criteria)
+        filters = make_criteria_filters(criteria)
         alternatives = make_filtered(alternatives, filters)
         print("Альтернативы отфильтрованы.")
         print_alternative_ids(alternatives)
         print()
-        print("Текущее множество решений:")
+        print("Текущее множество решений:", end=' ')
         print_set(alternatives)
+    ans = input('Хотите ли вы провести субоптимизацию лексикографическим методом [Д/н]')
+    if any(c in ans for c in 'YyДд'):
+        print_criteria_ids(criteria)
+        print("Введите идентификатор главного критерия:")
+        main_criteria = ALPHABET.index(input().strip())
+        print()
+        print("Теперь установите границы для всех остальных критериев, кроме главного.")
+        print_criteria_filters_request(criteria)
+        filters = make_criteria_filters(criteria)
+        alternatives = make_filtered(alternatives, filters)
+        is_reversed = alternatives[0].config[main_criteria]
+        alternatives = sorted(alternatives, key=lambda x: x.criteria[main_criteria], reverse=is_reversed)
+        print("Альтернативы отфлитрованы и отсортированы по главному критерию:")
+        print_alternative_ids(alternatives)
+        print()
+        print("Текущее множество решений:", end=' ')
+        print_set(alternatives)
+        print("Итоговое оптимальное решение:", end=' ')
+        print(alternatives[0].variant)
 
 if __name__ == '__main__':
     main()
