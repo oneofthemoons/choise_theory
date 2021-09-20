@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import csv
-from types import FunctionType
 from typing import *
+
+import matplotlib.pyplot as plt
 
 ALPHABET = "abcdefghijklmnopqrstuvwxyz"
 
@@ -19,7 +20,24 @@ class Alternative:
         self.config = config
         self.id = id
 
+    def set_criteria_priority(self, criteria: List[int]) -> None:
+        self.criteria_priority = criteria
+
     def __lt__(self, other: Alternative) -> bool:
+        if hasattr(self, "criteria_priority"):
+            for criteria_id in self.criteria_priority:
+                if self.criteria[criteria_id] != other.criteria[criteria_id]:
+                    if self.config[criteria_id]:
+                        if self.criteria[criteria_id] < other.criteria[criteria_id]:
+                            return True 
+                        else:
+                            return False
+                    if not self.config[criteria_id]:
+                        if self.criteria[criteria_id] > other.criteria[criteria_id]:
+                            return True
+                        else:
+                            return False
+            return False
         rv = True
         for i in range(len(self.criteria)):
             lt_crit = self.criteria[i] < other.criteria[i] and self.config[i] \
@@ -28,12 +46,31 @@ class Alternative:
         return rv
 
     def __eq__(self, other: Alternative) -> bool:
+        if hasattr(self, "criteria_priority"):
+            for criteria_id in self.criteria_priority:
+                if self.criteria[criteria_id] != other.criteria[criteria_id]:
+                    return False
+            return True
         rv = True
         for i in range(len(self.criteria)):
             rv = rv and self.criteria[i] == other.criteria[i]
         return rv
     
     def __gt__(self, other: Alternative) -> bool:
+        if hasattr(self, "criteria_priority"):
+            for criteria_id in self.criteria_priority:
+                if self.criteria[criteria_id] != other.criteria[criteria_id]:
+                    if self.config[criteria_id]:
+                        if self.criteria[criteria_id] > other.criteria[criteria_id]:
+                            return True 
+                        else:
+                            return False
+                    if not self.config[criteria_id]:
+                        if self.criteria[criteria_id] < other.criteria[criteria_id]:
+                            return True
+                        else:
+                            return False
+            return False
         rv = True
         for i in range(len(self.criteria)):
             gt_crit = self.criteria[i] > other.criteria[i] and self.config[i] \
@@ -42,6 +79,8 @@ class Alternative:
         return rv
 
     def __le__(self, other: Alternative) -> bool:
+        if hasattr(self, "criteria_priority"):
+            return self < other or self == other
         rv = True
         for i in range(len(self.criteria)):
             gt_crit = self.criteria[i] <= other.criteria[i] and self.config[i] \
@@ -50,6 +89,8 @@ class Alternative:
         return rv
         
     def __ge__(self, other: Alternative) -> bool:
+        if hasattr(self, "criteria_priority"):
+            return self > other or self == other
         rv = True
         for i in range(len(self.criteria)):
             gt_crit = self.criteria[i] >= other.criteria[i] and self.config[i] \
@@ -58,6 +99,8 @@ class Alternative:
         return rv
 
     def __ne__(self, other: Alternative) -> bool:
+        if hasattr(self, "criteria_priority"):
+            return not self == other
         return not self == other
 
 def parse_data(path: str) -> List[List[str]]:
@@ -193,6 +236,31 @@ def print_Paretho_set(alternatives: List[Alternative], idx_set: Set[int]) -> Non
     print("Парето-оптимальное множество решений:")
     print_set([alternatives[alt_idx] for alt_idx in idx_set])
 
+def normalized_criteria(criteria, maximums):
+    return [criteria[i] / maximums[i] for i in range(len(criteria))]
+
+def get_maximums_of_criteria(alternatives: List[Alternative]):
+    maximums = [0 for _ in alternatives[0].criteria]
+    for alternative in alternatives:
+        for i in range(len(alternative.criteria)):
+            maximums[i] = max(maximums[i], alternative.criteria[i])
+    return maximums
+
+def filtered_names(names: List[str]) -> List[str]:
+    res = []
+    for name in names:
+        end = name.find('(')
+        if end != -1:
+            name = name[:end]
+        end = name.find('[')
+        if end != -1:
+            name = name[:end]
+        res.append(name)
+    return res
+            
+
+
+
 def main() -> None:
     data_table = parse_data('lab1_data.csv')
     criteria = data_table[0][1:]
@@ -235,6 +303,28 @@ def main() -> None:
         print_set(alternatives)
         print("Итоговое оптимальное решение:", end=' ')
         print(alternatives[0].variant)
+    ans = input('Хотите ли вы провести лексикографическую оптимизацию? [Д/н]')
+    if any(c in ans for c in 'YyДд'):
+        print_criteria_ids(criteria)
+        plt.xticks(range(len(criteria)), filtered_names(criteria))
+        maximums = get_maximums_of_criteria(alternatives)
+        for i in range(len(criteria)):
+            plt.axvline(x=i, color='black')
+        for alternative in alternatives:
+            plt.plot(range(len(criteria)), normalized_criteria(alternative.criteria, maximums), label=alternative.variant)
+        print("Введите идентификаторы критериев в порядке важности:")
+        print("Например: abcd")
+        criterias = [ALPHABET.index(c) for c in input().strip()]
+        for alternative in alternatives:
+            alternative.set_criteria_priority(criterias)
+        alternatives = sorted(alternatives, reverse=True)
+        print()
+        print("Итоговый рейтинг альтернатив с индексами:")
+        print_alternative_ids(alternatives)
+        print()
+        print("Оптимальное решение: ", alternatives[0].variant)
+        plt.legend()
+        plt.show()
 
 if __name__ == '__main__':
     main()
